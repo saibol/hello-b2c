@@ -20,7 +20,32 @@
         </DefaultPartnerClaimTypes>
         <UserHelpText>Enter your custom string</UserHelpText>
       </ClaimType>
+      <ClaimType Id="email">
+        <DisplayName>Email</DisplayName>
+        <DataType>string</DataType>
+      </ClaimType>
+      <ClaimType Id="isNumeric">
+        <DisplayName>Is Numeric</DisplayName>
+        <DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="correlationId">
+        <DisplayName>Correlation Id</DisplayName>
+        <DataType>string</DataType>
+      </ClaimType>
     </ClaimsSchema>
+    <ClaimsTransformations>
+      <ClaimsTransformation Id="CheckEmailHasNumber" TransformationMethod="SetClaimsIfRegexMatch">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="email" TransformationClaimType="claimToMatch" />
+        </InputClaims>
+        <InputParameters>
+          <InputParameter Id="matchTo" DataType="string" Value="^.*[0-9].*$" />
+        </InputParameters>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isNumeric" TransformationClaimType="regexCompareResultClaim" />
+        </OutputClaims>
+      </ClaimsTransformation>
+    </ClaimsTransformations>
   </BuildingBlocks>
 
   <ClaimsProviders>
@@ -56,6 +81,20 @@
           <DisplayName>Session Management Provider</DisplayName>
           <Protocol Name="Proprietary" Handler="Web.TPEngine.SSO.OAuthSSOSessionProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
         </TechnicalProfile>
+        <TechnicalProfile Id="EvaluateEmailHasNumber">
+          <DisplayName>Evaluate Email Has Number</DisplayName>
+          <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.ClaimsTransformationProtocolProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+          <InputClaims>
+            <InputClaim ClaimTypeReferenceId="email" DefaultValue="123@abc.com" />
+          </InputClaims>
+          <OutputClaims>
+            <OutputClaim ClaimTypeReferenceId="email" />
+            <OutputClaim ClaimTypeReferenceId="isNumeric" />
+          </OutputClaims>
+          <OutputClaimsTransformations>
+            <OutputClaimsTransformation ReferenceId="CheckEmailHasNumber" />
+          </OutputClaimsTransformations>
+        </TechnicalProfile>
 
       </TechnicalProfiles>
     </ClaimsProvider>
@@ -64,7 +103,12 @@
   <UserJourneys>
     <UserJourney Id="CustomInputJourney">
       <OrchestrationSteps>
-        <OrchestrationStep Order="1" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+        <OrchestrationStep Order="1" Type="ClaimsExchange">
+          <ClaimsExchanges>
+            <ClaimsExchange Id="EvaluateEmailHasNumberExchange" TechnicalProfileReferenceId="EvaluateEmailHasNumber" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <OrchestrationStep Order="2" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
       </OrchestrationSteps>
     </UserJourney>
   </UserJourneys>
@@ -85,6 +129,9 @@
       <Protocol Name="OpenIdConnect" />
       <OutputClaims>
         <OutputClaim ClaimTypeReferenceId="customInput" DefaultValue="hello" />
+        <OutputClaim ClaimTypeReferenceId="email" />
+        <OutputClaim ClaimTypeReferenceId="isNumeric" />
+        <OutputClaim ClaimTypeReferenceId="correlationId" DefaultValue="{Context:CorrelationId}" AlwaysUseDefaultValue="true" />
       </OutputClaims>
       <SubjectNamingInfo ClaimType="customInput" />
     </TechnicalProfile>
