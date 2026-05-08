@@ -4,6 +4,8 @@
   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
   xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06"
   PolicySchemaVersion="0.3.0.0"
+  DeploymentMode="Development"
+  UserJourneyRecorderEndpoint="urn:journeyrecorder:applicationinsights"
   TenantId="sunilsaibol.onmicrosoft.com"
   PolicyId="B2C_1A_HelloWorld"
   PublicPolicyUri="http://sunilsaibol.onmicrosoft.com/B2C_1A_HelloWorld">
@@ -69,6 +71,15 @@
 
   <RelyingParty>
     <DefaultUserJourney ReferenceId="CustomInputJourney" />
+    <UserJourneyBehaviors>
+      <JourneyInsights
+        TelemetryEngine="ApplicationInsights"
+        InstrumentationKey="1c2a8994-14d8-4360-a93f-d190137f7941"
+        DeveloperMode="true"
+        ClientEnabled="true"
+        ServerEnabled="true"
+        TelemetryVersion="1.0.0" />
+    </UserJourneyBehaviors>
     <TechnicalProfile Id="PolicyProfile">
       <DisplayName>Token Issuer</DisplayName>
       <Protocol Name="OpenIdConnect" />
